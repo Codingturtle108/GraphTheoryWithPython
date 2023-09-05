@@ -1,42 +1,50 @@
-from GraphClassCode import Graph
+from collections import defaultdict
 
-def find_eulerian_cycle(G):
-    in_degree = G.count_indegree()
+class Graph:
+    def __init__(self):
+        self.graph = defaultdict(list)
 
-        # Check if all nodes have even degrees (for Eulerian cycle)
-    for degree in in_degree.values():
-        if degree % 2 != 0:
-            return []
+    def add_edge(self, u, v):
+        self.graph[u].append(v)
 
-    def dfs(node, visited_edges):
-        if len(visited_edges) == len(G.edges):
-            return [node]
+    def find_euler_path(self, v, path):
+        while self.graph[v]:
+            # Visit the next adjacent vertex
+            next_vertex = self.graph[v].pop()
+            # Recursively call the function on the next vertex
+            self.find_euler_path(next_vertex, path)
+        # Add the current vertex to the path
+        path.append(v)
 
-        for neighbor in G.adjlist[node]:
-            if (node, neighbor) not in visited_edges and (neighbor, node) not in visited_edges:
-                visited_edges.add((node, neighbor))
-                cycle = dfs(neighbor, visited_edges)
-                if cycle:
-                    return [node] + cycle
-                visited_edges.remove((node, neighbor))
+    def is_eulerian(self):
+        # Check if all non-zero degree vertices are connected
+        for key in self.graph:
+            if len(self.graph[key]) % 2 != 0:
+                return False
+        return True
 
-            return []
+    def find_eulerian_path(self):
+        if not self.is_eulerian():
+            return "No Eulerian path exists."
 
-        eulerian_cycle = dfs(G.nodes[0], set())
-        if eulerian_cycle:
-            return eulerian_cycle
-        else:
-            return []
+        start_vertex = list(self.graph.keys())[0]  # Start from any vertex
+        path = []
+        self.find_euler_path(start_vertex, path)
 
-# Example usage
-nodes = ['A', 'B', 'C', 'D']
-edges = [('A', 'B'), ('B', 'C'), ('C', 'A'), ('C', 'D'), ('D', 'A')]
+        # The path is constructed in reverse, so reverse it to get the correct order
+        return path[::-1]
 
-graph = Graph(nodes, edges)
-eulerian_cycle = find_eulerian_cycle(graph)
+# Example usage:
+g = Graph()
+g.add_edge(0, 1)
+g.add_edge(0, 2)
+g.add_edge(1, 2)
+g.add_edge(2, 0)
+g.add_edge(2, 3)
+g.add_edge(3, 3)
 
-if eulerian_cycle:
-    print("Eulerian Cycle:", eulerian_cycle)
+eulerian_path = g.find_eulerian_path()
+if eulerian_path == "No Eulerian path exists.":
+    print(eulerian_path)
 else:
-    print("No Eulerian Cycle found.")
-
+    print("Eulerian Path:", " -> ".join(map(str, eulerian_path)))
