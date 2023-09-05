@@ -1,50 +1,42 @@
-from collections import defaultdict
+from collections import  defaultdict
+def main():
+    n = int(input())
+    adj_list = defaultdict(list)
 
-class Graph:
-    def __init__(self):
-        self.graph = defaultdict(list)
+    # Reading the graph in adjacency list representation
+    for i in range(n):
+        adj_list[i] = list(map(int, input().split()))
 
-    def add_edge(self, u, v):
-        self.graph[u].append(v)
+    deg = [len(adj_list[i]) for i in range(n)]
+    print(deg)
 
-    def find_euler_path(self, v, path):
-        while self.graph[v]:
-            # Visit the next adjacent vertex
-            next_vertex = self.graph[v].pop()
-            # Recursively call the function on the next vertex
-            self.find_euler_path(next_vertex, path)
-        # Add the current vertex to the path
-        path.append(v)
+    # Check for Eulerian cycle possibility
+    has_odd_degree = any(deg[i] % 2 != 0 for i in range(n))
 
-    def is_eulerian(self):
-        # Check if all non-zero degree vertices are connected
-        for key in self.graph:
-            if len(self.graph[key]) % 2 != 0:
-                return False
-        return True
+    if has_odd_degree:
+        print(-1)
+        return
 
-    def find_eulerian_path(self):
-        if not self.is_eulerian():
-            return "No Eulerian path exists."
+    stack = [0]
+    res = []
 
-        start_vertex = list(self.graph.keys())[0]  # Start from any vertex
-        path = []
-        self.find_euler_path(start_vertex, path)
+    while stack:
+        v = stack[-1]
+        if not adj_list[v]:
+            res.append(v)
+            stack.pop()
+        else:
+            u = adj_list[v].pop()
+            adj_list[u].remove(v)
+            if u in adj_list[v]:
+                adj_list[v].remove(u)
+            stack.append(u)
 
-        # The path is constructed in reverse, so reverse it to get the correct order
-        return path[::-1]
+    # Check if all edges have been traversed
+    if any(adj_list[i] for i in range(n)):
+        print(-1)
+    else:
+        print(*res)
 
-# Example usage:
-g = Graph()
-g.add_edge(0, 1)
-g.add_edge(0, 2)
-g.add_edge(1, 2)
-g.add_edge(2, 0)
-g.add_edge(2, 3)
-g.add_edge(3, 3)
-
-eulerian_path = g.find_eulerian_path()
-if eulerian_path == "No Eulerian path exists.":
-    print(eulerian_path)
-else:
-    print("Eulerian Path:", " -> ".join(map(str, eulerian_path)))
+if __name__ == "__main__":
+    main()
